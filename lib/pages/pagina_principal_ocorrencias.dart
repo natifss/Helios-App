@@ -14,6 +14,10 @@ class _PaginaPrincipalOcorrenciasState extends State<PaginaPrincipalOcorrencias>
   Ocorrencia? _ocorrencia;
   GoogleMapController? _mapController;
 
+  final Color corFundo = Color(0xFFF1E2E0);
+  final Color corIcones = Color(0xFFF1B25F);
+  final Color corTopo = Color(0xFFA792A5);
+
   @override
   void initState() {
     super.initState();
@@ -55,7 +59,8 @@ class _PaginaPrincipalOcorrenciasState extends State<PaginaPrincipalOcorrencias>
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Nova Ocorrência'),
+          backgroundColor: corFundo,
+          title: Text('Nova Ocorrência', style: TextStyle(color: corTopo)),
           content: StatefulBuilder(
             builder: (context, setState) {
               return SizedBox(
@@ -78,6 +83,7 @@ class _PaginaPrincipalOcorrenciasState extends State<PaginaPrincipalOcorrencias>
                             : 'Data: ${DateFormat('dd/MM/yyyy – HH:mm').format(dataSelecionada!)}',
                       ),
                       ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: corTopo),
                         onPressed: () async {
                           final data = await showDatePicker(
                             context: context,
@@ -137,9 +143,10 @@ class _PaginaPrincipalOcorrenciasState extends State<PaginaPrincipalOcorrencias>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancelar'),
+              child: Text('Cancelar', style: TextStyle(color: corTopo)),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: corIcones),
               onPressed: () async {
                 if (localizacaoController.text.isEmpty ||
                     statusController.text.isEmpty ||
@@ -173,15 +180,17 @@ class _PaginaPrincipalOcorrenciasState extends State<PaginaPrincipalOcorrencias>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: corFundo,
       appBar: AppBar(
+        backgroundColor: corTopo,
         title: Text('Ocorrência Atual'),
         actions: [
           IconButton(
-            icon: Icon(Icons.history),
+            icon: Icon(Icons.history, color: corIcones),
             onPressed: () => Navigator.pushNamed(context, '/historico'),
           ),
           IconButton(
-            icon: Icon(Icons.add),
+            icon: Icon(Icons.add, color: corIcones),
             tooltip: 'Nova Ocorrência',
             onPressed: _mostrarDialogNovaOcorrencia,
           )
@@ -190,60 +199,61 @@ class _PaginaPrincipalOcorrenciasState extends State<PaginaPrincipalOcorrencias>
       body: _ocorrencia == null
           ? Center(child: Text('Nenhuma ocorrência em andamento'))
           : Column(
-            children: [
-              SizedBox(
-                height: 300,
-                child: GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: LatLng(_ocorrencia!.latitude, _ocorrencia!.longitude),
-                    zoom: 15,
-                  ),
-                  markers: {
-                    Marker(
-                      markerId: MarkerId('local'),
-                      position: LatLng(_ocorrencia!.latitude, _ocorrencia!.longitude),
-                    )
-                  },
-                  onMapCreated: (controller) => _mapController = controller,
-                ),
+        children: [
+          SizedBox(
+            height: 300,
+            child: GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: LatLng(_ocorrencia!.latitude, _ocorrencia!.longitude),
+                zoom: 15,
               ),
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              markers: {
+                Marker(
+                  markerId: MarkerId('local'),
+                  position: LatLng(_ocorrencia!.latitude, _ocorrencia!.longitude),
+                )
+              },
+              onMapCreated: (controller) => _mapController = controller,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Localização: ${_ocorrencia!.localizacao}'),
+                Text('Data/Hora: ${DateFormat('dd/MM/yyyy HH:mm').format(_ocorrencia!.dataHora)}'),
+                if (_ocorrencia!.dataHoraAtendimento != null)
+                  Text('Atendido em: ${DateFormat('dd/MM/yyyy HH:mm').format(_ocorrencia!.dataHoraAtendimento!)}'),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Localização: ${_ocorrencia!.localizacao}'),
-                    Text('Data/Hora: ${DateFormat('dd/MM/yyyy HH:mm').format(_ocorrencia!.dataHora)}'),
-                    if (_ocorrencia!.dataHoraAtendimento != null)
-                      Text('Atendido em: ${DateFormat('dd/MM/yyyy HH:mm').format(_ocorrencia!.dataHoraAtendimento!)}'),
-                    SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Status: ${_ocorrencia!.status}'),
-                        ElevatedButton(
-                          onPressed: () {
-                            if (_ocorrencia!.status == 'Pendente') {
-                              _atualizarStatus('Em atendimento');
-                            } else if (_ocorrencia!.status == 'Em atendimento') {
-                              _atualizarStatus('Finalizada');
-                            }
-                          },
-                          child: Text(
-                            _ocorrencia!.status == 'Pendente'
-                                ? 'Atender'
-                                : _ocorrencia!.status == 'Em atendimento'
-                                ? 'Finalizar'
-                                : 'Concluído',
-                          ),
-                        ),
-                      ],
+                    Text('Status: ${_ocorrencia!.status}'),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: corIcones),
+                      onPressed: () {
+                        if (_ocorrencia!.status == 'Pendente') {
+                          _atualizarStatus('Em atendimento');
+                        } else if (_ocorrencia!.status == 'Em atendimento') {
+                          _atualizarStatus('Finalizada');
+                        }
+                      },
+                      child: Text(
+                        _ocorrencia!.status == 'Pendente'
+                            ? 'Atender'
+                            : _ocorrencia!.status == 'Em atendimento'
+                            ? 'Finalizar'
+                            : 'Concluído',
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
+        ],
+      ),
     );
   }
 }
